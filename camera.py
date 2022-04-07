@@ -17,6 +17,7 @@ servo1_pin = 18
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(servo1_pin, GPIO.OUT)
 servo = GPIO.PWM(servo1_pin, 50)
+servo.start(2)
 
 bus = SMBus(1)
 sensor = MLX90614(bus, address=0x5A)
@@ -91,9 +92,9 @@ def get_temperature():
 
 def handle_door(open):
 	if(open):
-		servo.ChangeDutyCycle(50)
+		servo.ChangeDutyCycle(12)
 	else:
-		servo.ChangeDutyCycle(2.5)
+		servo.ChangeDutyCycle(2)
 
 
 def main():
@@ -161,6 +162,8 @@ def main():
 	# do a bit of cleanup
 	cv2.destroyAllWindows()
 	bus.close()
+	servo.stop()
+	GPIO.cleanup()
 
 if(__name__ == '__main__'):
 	main()
