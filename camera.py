@@ -92,8 +92,9 @@ def get_temperature():
 def handle_door(open):
 	if(open):
 		servo.ChangeDutyCycle(50)
-		time.sleep(5)
+	else:
 		servo.ChangeDutyCycle(2.5)
+
 
 def main():
 
