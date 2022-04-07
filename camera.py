@@ -86,7 +86,7 @@ def detect_and_predict_mask(frame, faceNet, maskNet):
 	
 def get_temperature():
 	temp = sensor.get_object_1()
-	temp_ok = temp >=37.5
+	temp_ok = temp <=37.5
 	return temp_ok, temp
 
 def handle_door(open):
