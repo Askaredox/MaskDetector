@@ -1,12 +1,23 @@
-from keras.applications.mobilenet_v2 import preprocess_input
-from keras.preprocessing.image import img_to_array
-from keras.models import load_model
+from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
+from tensorflow.keras.preprocessing.image import img_to_array
+from tensorflow.keras.models import load_model
+from gpiozero import Servo
+from smbus2 import SMBus
+from mlx90614 import MLX90614
 
 import numpy as np
 
 import time
 import cv2
 import os
+
+
+servo1_pin = 18
+
+servo1 = Servo(servo1_pin)
+
+bus = SMBus(1)
+sensor = MLX90614(bus, address=0x5A)
 
 def detect_and_predict_mask(frame, faceNet, maskNet):
 	# grab the dimensions of the frame and then construct a blob
@@ -70,62 +81,80 @@ def detect_and_predict_mask(frame, faceNet, maskNet):
 	# locations
 	return (locs, preds)
 
-prototxtPath = os.path.sep.join(['face_detector', "deploy.prototxt"])
-weightsPath = os.path.sep.join(['face_detector',
-	"res10_300x300_ssd_iter_140000.caffemodel"])
-faceNet = cv2.dnn.readNet(prototxtPath, weightsPath)
+	
+def get_temperature():
+	temp = sensor.get_object_1()
+	temp_ok = temp >=37.5
+	return temp_ok, temp
 
-# load the face mask detector model from disk
-print("[INFO] loading face mask detector model...")
-maskNet = load_model("mask_detector.model")
+def handle_door(open):
+	if(open):
+		servo1.max()
+		time.sleep(5)
+		servo1.min()
 
-# initialize the video stream and allow the camera sensor to warm up
-print("[INFO] starting video stream...")
-camera = cv2.VideoCapture(0)
-time.sleep(2.0)
+def main():
 
-# loop over the frames from the video stream
-while True:
-	# grab the frame from the threaded video stream and resize it
-	# to have a maximum width of 400 pixels
-	ret, frame = camera.read()
-	if(not ret):
-		print("failed to grab frame")
-		break
+	prototxtPath = os.path.sep.join(['face_detector', "deploy.prototxt"])
+	weightsPath = os.path.sep.join(['face_detector',
+		"res10_300x300_ssd_iter_140000.caffemodel"])
+	faceNet = cv2.dnn.readNet(prototxtPath, weightsPath)
 
-	# detect faces in the frame and determine if they are wearing a
-	# face mask or not
-	(locs, preds) = detect_and_predict_mask(frame, faceNet, maskNet)
-	print(locs, preds)
-	# loop over the detected face locations and their corresponding
-	# locations
-	for (box, pred) in zip(locs, preds):
-		# unpack the bounding box and predictions
-		(startX, startY, endX, endY) = box
-		(mask, withoutMask) = pred
+	# load the face mask detector model from disk
+	print("[INFO] loading face mask detector model...")
+	maskNet = load_model("mask_detector.model")
 
-		# determine the class label and color we'll use to draw
-		# the bounding box and text
-		label = "Mask" if mask > withoutMask else "No Mask"
-		color = (0, 255, 0) if label == "Mask" else (0, 0, 255)
-			
-		# include the probability in the label
-		label = "{}: {:.2f}%".format(label, max(mask, withoutMask) * 100)
+	# initialize the video stream and allow the camera sensor to warm up
+	print("[INFO] starting video stream...")
+	camera = cv2.VideoCapture(0)
+	time.sleep(2.0)
 
-		# display the label and bounding box rectangle on the output
-		# frame
-		cv2.putText(frame, label, (startX, startY - 10),
-			cv2.FONT_HERSHEY_SIMPLEX, 0.45, color, 2)
-		cv2.rectangle(frame, (startX, startY), (endX, endY), color, 2)
+	# loop over the frames from the video stream
+	while True:
+		# grab the frame from the threaded video stream and resize it
+		# to have a maximum width of 400 pixels
+		ret, frame = camera.read()
+		if(not ret):
+			print("failed to grab frame")
+			break
 
-	# show the output frame
-	cv2.imshow("Frame", frame)
-	key = cv2.waitKey(1) & 0xFF
+		# detect faces in the frame and determine if they are wearing a
+		# face mask or not
+		(locs, preds) = detect_and_predict_mask(frame, faceNet, maskNet)
+		print(locs, preds)
+		# loop over the detected face locations and their corresponding
+		# locations
+		for (box, pred) in zip(locs, preds):
+			# unpack the bounding box and predictions
+			(startX, startY, endX, endY) = box
+			(mask, withoutMask) = pred
 
-	# if the `q` key was pressed, break from the loop
-	if key == ord("q"):
-		break
+			# determine the class label and color we'll use to draw
+			# the bounding box and text
+			mask_ok = mask > withoutMask
+			temp_ok, temp = get_temperature()
 
-# do a bit of cleanup
-cv2.destroyAllWindows()
+			handle_door(mask_ok and temp_ok)
 
+			label = "Mask" if mask_ok else "No Mask"
+			color = (0, 255, 0) if mask_ok and temp_ok else (0, 0, 255)
+				
+			# include the probability in the label
+			label = "{}: {:.2f}%, T: {}".format(label, max(mask, withoutMask) * 100, temp)
+
+			# display the label and bounding box rectangle on the output
+			# frame
+			cv2.putText(frame, label, (startX, startY - 10),
+				cv2.FONT_HERSHEY_SIMPLEX, 0.45, color, 2)
+			cv2.rectangle(frame, (startX, startY), (endX, endY), color, 2)
+
+		# show the output frame
+		cv2.imshow("Frame", frame)
+		key = cv2.waitKey(1) & 0xFF
+
+		# if the `q` key was pressed, break from the loop
+		if key == ord("q"):
+			break
+	# do a bit of cleanup
+	cv2.destroyAllWindows()
+	bus.close()
