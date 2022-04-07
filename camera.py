@@ -160,3 +160,6 @@ def main():
 	# do a bit of cleanup
 	cv2.destroyAllWindows()
 	bus.close()
+
+if(__name__ == '__main__'):
+	main()
