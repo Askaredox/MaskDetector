@@ -1,7 +1,7 @@
 from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 from tensorflow.keras.preprocessing.image import img_to_array
 from tensorflow.keras.models import load_model
-from gpiozero import Servo
+import RPi.GPIO as GPIO
 from smbus2 import SMBus
 from mlx90614 import MLX90614
 
@@ -14,7 +14,9 @@ import os
 
 servo1_pin = 18
 
-servo1 = Servo(servo1_pin)
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(servo1_pin, GPIO.OUT)
+servo = GPIO.PWM(servo1_pin, 50)
 
 bus = SMBus(1)
 sensor = MLX90614(bus, address=0x5A)
@@ -89,9 +91,9 @@ def get_temperature():
 
 def handle_door(open):
 	if(open):
-		servo1.max()
+		servo.ChangeDutyCycle(50)
 		time.sleep(5)
-		servo1.min()
+		servo.ChangeDutyCycle(2.5)
 
 def main():
 
