@@ -126,6 +126,7 @@ def main():
 	# loop over the frames from the video stream
 	while True:
 		door = False
+		face = False
 		mask_ok, temp_ok = False, False
 		# grab the frame from the threaded video stream and resize it
 		# to have a maximum width of 400 pixels
@@ -150,7 +151,7 @@ def main():
 			# the bounding box and text
 			mask_ok = mask > withoutMask
 			temp_ok, temp = get_temperature()
-
+			face = True
 
 			label = "Mask" if mask_ok else "No Mask"
 			color = (0, 255, 0) if mask_ok and temp_ok else (0, 0, 255)
@@ -170,7 +171,7 @@ def main():
 				cv2.putText(frame, 'No mask!', (20,20), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2 )
 			elif(not temp_ok):
 				cv2.putText(frame, 'Temperature not ok!', (20,20), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2 )
-		else:
+		if(not face):
 			cv2.putText(frame, 'Face to the camera, please', (20,20), cv2.FONT_HERSHEY_SIMPLEX, 1,  (0, 255, 0), 2 )
 		# show the output frame
 		cv2.imshow("Frame", frame)
