@@ -95,10 +95,11 @@ def handle_door(open):
 		servo.ChangeDutyCycle(12)
 	else:
 		servo.ChangeDutyCycle(2)
+	return True
 
 
 def main():
-
+	
 	prototxtPath = os.path.sep.join(['face_detector', "deploy.prototxt"])
 	weightsPath = os.path.sep.join(['face_detector',
 		"res10_300x300_ssd_iter_140000.caffemodel"])
@@ -115,6 +116,7 @@ def main():
 
 	# loop over the frames from the video stream
 	while True:
+		door = False
 		# grab the frame from the threaded video stream and resize it
 		# to have a maximum width of 400 pixels
 		ret, frame = camera.read()
@@ -138,7 +140,7 @@ def main():
 			mask_ok = mask > withoutMask
 			temp_ok, temp = get_temperature()
 
-			handle_door(mask_ok and temp_ok)
+			door = handle_door(mask_ok and temp_ok)
 
 			label = "Mask" if mask_ok else "No Mask"
 			color = (0, 255, 0) if mask_ok and temp_ok else (0, 0, 255)
@@ -159,6 +161,10 @@ def main():
 		# if the `q` key was pressed, break from the loop
 		if key == ord("q"):
 			break
+
+		if(not door):
+			servo.ChangeDutyCycle(2)
+			
 	# do a bit of cleanup
 	cv2.destroyAllWindows()
 	bus.close()
