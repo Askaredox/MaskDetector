@@ -100,7 +100,7 @@ def handle_door(open):
 
 
 def main():
-	
+	mask_ok, temp_ok = False, False
 	prototxtPath = os.path.sep.join(['face_detector', "deploy.prototxt"])
 	weightsPath = os.path.sep.join(['face_detector',
 		"res10_300x300_ssd_iter_140000.caffemodel"])
