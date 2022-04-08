@@ -95,11 +95,13 @@ def get_temperature():
 
 def handle_door(open):
 	if(open):
+		print('[INFO] Opening door')
 		GPIO.output(LED_GRN, GPIO.HIGH)
 		GPIO.output(LED_RED, GPIO.LOW)
 		servo.ChangeDutyCycle(12)
 		time.sleep(5)
 	else:
+		print('[INFO] Closing door')
 		GPIO.output(LED_RED, GPIO.HIGH)
 		GPIO.output(LED_GRN, GPIO.LOW)
 		servo.ChangeDutyCycle(2)
@@ -135,7 +137,8 @@ def main():
 		# detect faces in the frame and determine if they are wearing a
 		# face mask or not
 		(locs, preds) = detect_and_predict_mask(frame, faceNet, maskNet)
-		print(locs, preds)
+		# print(locs, preds)
+		print('[INFO] Face detected!')
 		# loop over the detected face locations and their corresponding
 		# locations
 		for (box, pred) in zip(locs, preds):
@@ -168,7 +171,7 @@ def main():
 			elif(not temp_ok):
 				cv2.putText(frame, 'Temperature not ok!', (20,20), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2 )
 
-
+		cv2.putText(frame, 'Temperature not ok!', (20,20), cv2.FONT_HERSHEY_SIMPLEX, 1,  (0, 255, 0), 2 )
 		# show the output frame
 		cv2.imshow("Frame", frame)
 		key = cv2.waitKey(1) & 0xFF
@@ -178,7 +181,11 @@ def main():
 		if key == ord("q"):
 			break
 
-		handle_door(door)
+		if(not door):
+			print('[INFO] Closing door')
+			GPIO.output(LED_RED, GPIO.HIGH)
+			GPIO.output(LED_GRN, GPIO.LOW)
+			servo.ChangeDutyCycle(2)
 			
 	# do a bit of cleanup
 	cv2.destroyAllWindows()
