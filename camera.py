@@ -141,7 +141,6 @@ def main():
 			mask_ok = mask > withoutMask
 			temp_ok, temp = get_temperature()
 
-			door = handle_door(mask_ok and temp_ok)
 
 			label = "Mask" if mask_ok else "No Mask"
 			color = (0, 255, 0) if mask_ok and temp_ok else (0, 0, 255)
@@ -154,6 +153,8 @@ def main():
 			cv2.putText(frame, label, (startX, startY - 10),
 				cv2.FONT_HERSHEY_SIMPLEX, 0.45, color, 2)
 			cv2.rectangle(frame, (startX, startY), (endX, endY), color, 2)
+			
+			door = handle_door(mask_ok and temp_ok)
 
 		# show the output frame
 		cv2.imshow("Frame", frame)
