@@ -167,10 +167,10 @@ def main():
 
 			if(mask_ok and temp_ok):
 				cv2.putText(frame, 'You are good to go!', (20,20), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2 )
-			elif(not mask_ok):
-				cv2.putText(frame, 'No mask!', (20,20), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2 )
 			elif(not temp_ok):
 				cv2.putText(frame, 'Temperature not ok!', (20,20), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2 )
+			elif(not mask_ok):
+				cv2.putText(frame, 'No mask!', (20,20), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2 )
 		if(not face):
 			cv2.putText(frame, 'Face to the camera, please', (20,20), cv2.FONT_HERSHEY_SIMPLEX, 1,  (0, 255, 0), 2 )
 		# show the output frame
