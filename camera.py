@@ -154,7 +154,8 @@ def main():
 				cv2.FONT_HERSHEY_SIMPLEX, 0.45, color, 2)
 			cv2.rectangle(frame, (startX, startY), (endX, endY), color, 2)
 
-			cv2.putText(frame, 'You are good to go!', (20,20), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2 )
+			if(mask_ok and temp_ok):
+				cv2.putText(frame, 'You are good to go!', (20,20), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2 )
 
 			door = handle_door(mask_ok and temp_ok)
 
