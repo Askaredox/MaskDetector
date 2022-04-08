@@ -99,7 +99,7 @@ def handle_door(open):
 		GPIO.output(LED_GRN, GPIO.HIGH)
 		GPIO.output(LED_RED, GPIO.LOW)
 		servo.ChangeDutyCycle(12)
-		time.sleep(5)
+		time.sleep(3)
 	else:
 		print('[INFO] Closing door')
 		GPIO.output(LED_RED, GPIO.HIGH)
