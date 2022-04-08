@@ -146,7 +146,7 @@ def main():
 			color = (0, 255, 0) if mask_ok and temp_ok else (0, 0, 255)
 				
 			# include the probability in the label
-			label = "{}: {:.2f}%, T: {}".format(label, max(mask, withoutMask) * 100, temp)
+			label = "T: {}".format(temp)
 
 			# display the label and bounding box rectangle on the output
 			# frame
@@ -156,13 +156,17 @@ def main():
 
 			if(mask_ok and temp_ok):
 				cv2.putText(frame, 'You are good to go!', (20,20), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2 )
+			elif(not mask_ok):
+				cv2.putText(frame, 'No mask!', (20,20), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2 )
+			elif(not temp_ok):
+				cv2.putText(frame, 'Temperature not ok!', (20,20), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2 )
 
-			door = handle_door(mask_ok and temp_ok)
 
 		# show the output frame
 		cv2.imshow("Frame", frame)
 		key = cv2.waitKey(1) & 0xFF
 
+		door = handle_door(mask_ok and temp_ok)
 		# if the `q` key was pressed, break from the loop
 		if key == ord("q"):
 			break
