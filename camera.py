@@ -11,11 +11,14 @@ import time
 import cv2
 import os
 
-
+LED_GRN = 27
+LED_RED = 17
 servo1_pin = 18
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(servo1_pin, GPIO.OUT)
+GPIO.setup(LED_GRN, GPIO.OUT)
+GPIO.setup(LED_RED, GPIO.OUT)
 servo = GPIO.PWM(servo1_pin, 50)
 servo.start(2)
 
@@ -87,20 +90,23 @@ def detect_and_predict_mask(frame, faceNet, maskNet):
 	
 def get_temperature():
 	temp = sensor.get_object_1()
-	temp_ok = temp <=37.5
+	temp_ok = temp <= 37.5
 	return temp_ok, temp
 
 def handle_door(open):
 	if(open):
+		GPIO.output(LED_GRN, GPIO.HIGH)
+		GPIO.output(LED_RED, GPIO.LOW)
 		servo.ChangeDutyCycle(12)
 		time.sleep(5)
 	else:
+		GPIO.output(LED_RED, GPIO.HIGH)
+		GPIO.output(LED_GRN, GPIO.LOW)
 		servo.ChangeDutyCycle(2)
 	return True
 
 
 def main():
-	mask_ok, temp_ok = False, False
 	prototxtPath = os.path.sep.join(['face_detector', "deploy.prototxt"])
 	weightsPath = os.path.sep.join(['face_detector',
 		"res10_300x300_ssd_iter_140000.caffemodel"])
@@ -118,6 +124,7 @@ def main():
 	# loop over the frames from the video stream
 	while True:
 		door = False
+		mask_ok, temp_ok = False, False
 		# grab the frame from the threaded video stream and resize it
 		# to have a maximum width of 400 pixels
 		ret, frame = camera.read()
@@ -146,7 +153,7 @@ def main():
 			color = (0, 255, 0) if mask_ok and temp_ok else (0, 0, 255)
 				
 			# include the probability in the label
-			label = "T: {}".format(temp)
+			label = "T: {0:.2f}".format(temp)
 
 			# display the label and bounding box rectangle on the output
 			# frame
@@ -171,8 +178,7 @@ def main():
 		if key == ord("q"):
 			break
 
-		if(not door):
-			servo.ChangeDutyCycle(2)
+		handle_door(door)
 			
 	# do a bit of cleanup
 	cv2.destroyAllWindows()
